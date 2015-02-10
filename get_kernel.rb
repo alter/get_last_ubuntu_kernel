@@ -35,7 +35,7 @@ files.each do |file|
     response = http.request_head( URI.escape( file_path ) )
     ProgressBar
     pbar = ProgressBar.new( "progress", response['content-length'].to_i )
-    puts file_path
+    puts file
     pbar.file_transfer_mode
     File.open( "#{path}/#{file}", 'w' ) do |f|
       http.get( file_path ) do |str|
