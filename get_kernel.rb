@@ -7,8 +7,8 @@ require 'progressbar'
 
 HOST = 'kernel.ubuntu.com'
 MAINLINE = '/~kernel-ppa/mainline/'
-arch = ARGV[1] || 'amd64'
-type = ARGV[2] || 'generic'
+arch = ARGV[0] || 'amd64'
+type = ARGV[1] || 'generic'
 
 source = Net::HTTP.get( HOST, MAINLINE )
 page = Nokogiri::HTML( source )
