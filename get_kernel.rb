@@ -30,14 +30,15 @@ FileUtils.mkdir_p(path) unless File.exists?(path)
 
 files.each do |file|
   counter = 0
-  Net::HTTP.start(HOST) do |http|
-    response = http.request_head(URI.escape("#{MAINLINE}#{last_version}#{file}"))
+  file_path = "#{MAINLINE}#{last_version}#{file}"
+  Net::HTTP.start( HOST ) do |http|
+    response = http.request_head( URI.escape( file_path ) )
     ProgressBar
-    pbar = ProgressBar.new("progress", response['content-length'].to_i)
-    puts "#{MAINLINE}#{last_version}#{file}"
+    pbar = ProgressBar.new( "progress", response['content-length'].to_i )
+    puts file_path
     pbar.file_transfer_mode
     File.open( "#{path}/#{file}", 'w' ) do |f|
-      http.get( "#{MAINLINE}#{last_version}#{file}" ) do |str|
+      http.get( file_path ) do |str|
         f.write str
         counter += str.length
         pbar.set(counter)
