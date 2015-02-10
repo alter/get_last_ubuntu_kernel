@@ -48,5 +48,5 @@ files.each do |file|
   end
 end
 
-puts "run manually \'sudo dpkg -i #{path}/linux-*.deb\' if you are sure!"
+puts "\nrun manually \'sudo dpkg -i #{path}/linux-*.deb\' if you are sure!\n"
 
