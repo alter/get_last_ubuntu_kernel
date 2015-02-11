@@ -3,7 +3,7 @@
 Ruby script for getting last ubuntu kernel  
 
 ## Install dependences  
-gem install nokogiri securerandom progressbar  
+gem install nokogiri progressbar  
 
 ## HOW TO USE  
 ./get_kernel.rb # for amd64 generic kernel  
@@ -14,3 +14,4 @@ gem install nokogiri securerandom progressbar
 
 ## Supported versions
 script was checked on ruby-2.1.5
+securerandom module, which used in that app appeared in ruby-2.0.0
