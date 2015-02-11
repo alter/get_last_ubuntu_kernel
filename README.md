@@ -3,6 +3,8 @@
 Ruby script for getting last ubuntu kernel  
 
 ## Install dependences  
+ruby 'bundle' command  
+or of you wish install gems manually:  
 gem install nokogiri progressbar  
 
 ## HOW TO USE  
