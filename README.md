@@ -15,5 +15,5 @@ gem install nokogiri progressbar
 ./get_kernel.rb i386 lowlatency # for i386 lowlatency kernel  
 
 ## Supported versions
-script was checked on ruby-2.1.5
-securerandom module, which used in that app appeared in ruby-2.0.0
+script was checked on ruby-2.1.5  
+securerandom module, which used in that app appeared in ruby-2.0.0  
