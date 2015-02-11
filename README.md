@@ -1,6 +1,7 @@
 # get_last_ubuntu_kernel  
 ## Description
 Ruby script for getting last ubuntu kernel  
+It won't install kernel for you, it only downloads necessary files and gives you instructions how to setup it.  
 
 ## Install dependences  
 run 'bundle' command  
