@@ -4,11 +4,17 @@ require 'nokogiri'
 require 'fileutils'
 require 'securerandom'
 require 'progressbar'
+require 'micro-optparse'
+
+options = Parser.new do |p|
+  p.option :arch, 'architecture type "amd64" or "i386"', :default => 'amd64', :value_in_set => ['amd64', 'i386']
+  p.option :type, 'kernel type "generic" or "lowlatency"', :default => 'generic', :value_in_set => ['generic', 'lowlatency']
+end.process!
 
 HOST = 'kernel.ubuntu.com'
 MAINLINE = '/~kernel-ppa/mainline/'
-arch = ARGV[0] || 'amd64'
-type = ARGV[1] || 'generic'
+arch = options[:arch] || 'amd64'
+type = options[:type] || 'generic'
 
 source = Net::HTTP.get( HOST, MAINLINE )
 page = Nokogiri::HTML( source )
