@@ -55,8 +55,6 @@ def generate_tmp_folder
   return path
 end
 
-path = generate_tmp_folder
-
 def download_file(path, file)
   counter = 0
   file_path = "#{MAINLINE}#{get_last_version}#{file}"
@@ -85,7 +83,7 @@ if __FILE__ == $0
   end
 
   get_all_files
-  generate_tmp_folder
+  path = generate_tmp_folder
 
   $files.each do |file|
     download_file(path, file)
