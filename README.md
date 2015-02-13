@@ -4,7 +4,7 @@ Ruby script for getting last ubuntu kernel
 It installs kernel ONLY if you choose option --install, by default it only downloads necessary files and gives you instructions how to setup it.  
 
 ## Dependencies installation  
-run 'bundle' command  
+gem install bunder and run 'bundle' command  
 or of you wish install gems manually:  
 gem install nokogiri progressbar micro-optparse  
 

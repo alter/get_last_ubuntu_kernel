@@ -13,6 +13,7 @@ options = Parser.new do |p|
   p.option :type, 'kernel type "generic" or "lowlatency", default "generic"', :default => 'generic', :value_in_set => ['generic', 'lowlatency']
   p.option :show, 'only show last stable kernel version end exit', :default => false, :optional => true
   p.option :install, 'install downloaded kernel', :default => false, :optional => true
+  p.option :clear, 'remove folder with kernel deb packages from /tmp', :default => false, :optional => true
 end.process!
 
 HOST = 'kernel.ubuntu.com'
@@ -71,3 +72,7 @@ else
   puts "\nrun manually \'sudo dpkg -i #{path}/linux-*.deb\' if you are sure!\n"
 end
 
+if options[:clear]
+  puts "\nremoving #{path}\n"
+  %x[ rm -rf #{path} ]
+end
