@@ -6,9 +6,11 @@ require 'securerandom'
 require 'progressbar'
 require 'micro-optparse'
 
+VERSION='2.0'
+
 options = Parser.new do |p|
   p.banner = "This is a script for getting last kernel version from kernel.ubuntu.com/~kernel-ppa/mainline, for usage see below"
-  p.version = "script version 1.5"
+  p.version = "script version #{VERSION}"
   p.option :arch, 'architecture type "amd64" or "i386", default "amd64"', :default => 'amd64', :value_in_set => ['amd64', 'i386']
   p.option :type, 'kernel type "generic" or "lowlatency", default "generic"', :default => 'generic', :value_in_set => ['generic', 'lowlatency']
   p.option :show, 'only show last stable kernel version end exit', :default => false, :optional => true
