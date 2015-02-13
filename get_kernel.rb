@@ -6,7 +6,7 @@ require 'securerandom'
 require 'progressbar'
 require 'micro-optparse'
 
-VERSION='2.0'
+VERSION='2.1'
 
 options = Parser.new do |p|
   p.banner = "This is a script for getting last kernel version from kernel.ubuntu.com/~kernel-ppa/mainline, for usage see below"
@@ -20,34 +20,46 @@ end.process!
 
 HOST = 'kernel.ubuntu.com'
 MAINLINE = '/~kernel-ppa/mainline/'
-arch = options[:arch] || 'amd64'
-type = options[:type] || 'generic'
+$arch = options[:arch] || 'amd64'
+$type = options[:type] || 'generic'
+$versions = []
+$files = []
 
-source = Net::HTTP.get( HOST, MAINLINE )
-page = Nokogiri::HTML( source )
-versions = []
-page.css('a').each do |a|
-  versions << a.text if !a.text.include? '-rc'
+def get_all_versions
+  $versions = []
+  source = Net::HTTP.get( HOST, MAINLINE )
+  page = Nokogiri::HTML( source )
+  page.css('a').each do |a|
+    $versions << a.text if !a.text.include? '-rc'
+  end
 end
 
-last_version = versions[-1]
-if options[:show]
-  puts "Last stable version: #{last_version.sub('/', '')}"
-  exit 0
-end
-source = Net::HTTP.get( HOST, "#{MAINLINE}#{last_version}" )
-page = Nokogiri::HTML( source )
-files = []
-page.css('a').each do |a|
-  files << a.text if( ( a.text.include? arch and a.text.include? type ) or a.text.include? '_all' )
+def get_last_version
+  get_all_versions if $files.empty?
+  $versions[-1]
 end
 
-path = "/tmp/#{SecureRandom.hex}"
-FileUtils.mkdir_p(path) unless File.exists?(path)
+def get_all_files
+  $files = []
+  source = Net::HTTP.get( HOST, "#{MAINLINE}#{get_last_version}" )
+  page = Nokogiri::HTML( source )
+  page.css('a').each do |a|
+    $files << a.text if( ( a.text.include? $arch and a.text.include? $type ) or a.text.include? '_all' )
+  end
+end
 
-files.each do |file|
+
+def generate_tmp_folder
+  path = "/tmp/#{SecureRandom.hex}"
+  FileUtils.mkdir_p(path) unless File.exists?(path)
+  return path
+end
+
+path = generate_tmp_folder
+
+def download_file(path, file)
   counter = 0
-  file_path = "#{MAINLINE}#{last_version}#{file}"
+  file_path = "#{MAINLINE}#{get_last_version}#{file}"
   Net::HTTP.start( HOST ) do |http|
     response = http.request_head( URI.escape( file_path ) )
     ProgressBar
@@ -65,16 +77,34 @@ files.each do |file|
   end
 end
 
-if options[:install]
-  puts "\nInstalling kernel\n"
-  output = %x[ sudo dpkg -i #{path}/linux-*.deb ]
-  puts output
-  puts "\nDon't forget reboot your PC/server\n"
+if __FILE__ == $0
+
+  if options[:show]
+    puts "Last stable version: #{get_last_version.sub('/', '')}"
+    exit 0
+  end
+
+  get_all_files
+  generate_tmp_folder
+
+  $files.each do |file|
+    download_file(path, file)
+  end
+
+  if options[:install]
+    puts "\nInstalling kernel\n"
+    output = %x[ sudo dpkg -i #{path}/linux-*.deb ]
+    puts output
+    puts "\nDon't forget reboot your PC/server\n"
+  end
+
+  if options[:clear]
+    puts "\nremoving #{path}\n"
+    %x[ rm -rf #{path} ]
+  end
+
+  if !options[:clear] and !options[:install]
+    puts "\nrun \ bash -c 'sudo dpkg -i #{path}/linux-*.deb\' if you'd like to install downloaded kernel!\n"
+  end
 end
 
-if options[:clear]
-  puts "\nremoving #{path}\n"
-  %x[ rm -rf #{path} ]
-else
-  puts "\nrun manually \'sudo dpkg -i #{path}/linux-*.deb\' if you are sure!\n"
-end
