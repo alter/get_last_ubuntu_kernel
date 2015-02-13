@@ -1,4 +1,4 @@
-# get_last_ubuntu_kernel  
+# Get last stable ubuntu kernel 
 ## Description
 Ruby script for getting last ubuntu kernel  
 It installs kernel ONLY if you choose option --install, by default it only downloads necessary files and gives you instructions how to setup it.  
