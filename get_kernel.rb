@@ -9,9 +9,10 @@ require 'micro-optparse'
 options = Parser.new do |p|
   p.banner = "This is a script for getting last kernel version from kernel.ubuntu.com/~kernel-ppa/mainline, for usage see below"
   p.version = "script version 1.5"
-  p.option :arch, 'architecture type "amd64" or "i386"', :default => 'amd64', :value_in_set => ['amd64', 'i386']
-  p.option :type, 'kernel type "generic" or "lowlatency"', :default => 'generic', :value_in_set => ['generic', 'lowlatency']
-  p.option :show, 'show last stable kernel version from kernel.ubuntu.com/~kernel-ppa/mainline', :default => false, :optional => true
+  p.option :arch, 'architecture type "amd64" or "i386", default "amd64"', :default => 'amd64', :value_in_set => ['amd64', 'i386']
+  p.option :type, 'kernel type "generic" or "lowlatency", default "generic"', :default => 'generic', :value_in_set => ['generic', 'lowlatency']
+  p.option :show, 'only show last stable kernel version end exit', :default => false, :optional => true
+  p.option :install, 'install downloaded kernel', :default => false, :optional => true
 end.process!
 
 HOST = 'kernel.ubuntu.com'
@@ -61,5 +62,12 @@ files.each do |file|
   end
 end
 
-puts "\nrun manually \'sudo dpkg -i #{path}/linux-*.deb\' if you are sure!\n"
+if options[:install]
+  puts "\nInstalling kernel\n"
+  output = %x[ sudo dpkg -i #{path}/linux-*.deb ]
+  puts output
+  puts "\nDon't forget reboot your PC/server\n"
+else
+  puts "\nrun manually \'sudo dpkg -i #{path}/linux-*.deb\' if you are sure!\n"
+end
 

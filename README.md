@@ -1,7 +1,7 @@
 # get_last_ubuntu_kernel  
 ## Description
 Ruby script for getting last ubuntu kernel  
-It won't install kernel for you, it only downloads necessary files and gives you instructions how to setup it.  
+It installs kernel ONLY if you choose option --install, by default it only downloads necessary files and gives you instructions how to setup it.  
 
 ## Dependencies installation  
 run 'bundle' command  
@@ -16,6 +16,8 @@ gem install nokogiri progressbar micro-optparse
 ./get_kernel.rb -a i386 # for i386 generic kernel  
 ./get_kernel.rb -a i386 -t lowlatency # for i386 lowlatency kernel  
 ./get_kernel.rb -t lowlatency # for amd64 lowlatency kernel  
+./get_kernel.rb -s # show version of kernel which available for downloading  
+./get_kernel.rb -i # setup downloaded version  
 
 
 ## Supported versions
