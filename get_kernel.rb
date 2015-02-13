@@ -7,8 +7,11 @@ require 'progressbar'
 require 'micro-optparse'
 
 options = Parser.new do |p|
+  p.banner = "This is a script for getting last kernel version from kernel.ubuntu.com/~kernel-ppa/mainline, for usage see below"
+  p.version = "script version 1.5"
   p.option :arch, 'architecture type "amd64" or "i386"', :default => 'amd64', :value_in_set => ['amd64', 'i386']
   p.option :type, 'kernel type "generic" or "lowlatency"', :default => 'generic', :value_in_set => ['generic', 'lowlatency']
+  p.option :show, 'show last stable kernel version from kernel.ubuntu.com/~kernel-ppa/mainline', :default => false, :optional => true
 end.process!
 
 HOST = 'kernel.ubuntu.com'
@@ -24,6 +27,10 @@ page.css('a').each do |a|
 end
 
 last_version = versions[-1]
+if options[:show]
+  puts "Last stable version: #{last_version.sub('/', '')}"
+  exit 0
+end
 source = Net::HTTP.get( HOST, "#{MAINLINE}#{last_version}" )
 page = Nokogiri::HTML( source )
 files = []
