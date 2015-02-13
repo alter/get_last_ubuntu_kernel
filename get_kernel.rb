@@ -70,11 +70,11 @@ if options[:install]
   output = %x[ sudo dpkg -i #{path}/linux-*.deb ]
   puts output
   puts "\nDon't forget reboot your PC/server\n"
-else
-  puts "\nrun manually \'sudo dpkg -i #{path}/linux-*.deb\' if you are sure!\n"
 end
 
 if options[:clear]
   puts "\nremoving #{path}\n"
   %x[ rm -rf #{path} ]
+else
+  puts "\nrun manually \'sudo dpkg -i #{path}/linux-*.deb\' if you are sure!\n"
 end
