@@ -6,7 +6,7 @@ require 'securerandom'
 require 'progressbar'
 require 'micro-optparse'
 
-VERSION='2.1'
+VERSION='2.2'
 
 options = Parser.new do |p|
   p.banner = "This is a script for getting last kernel version from kernel.ubuntu.com/~kernel-ppa/mainline, for usage see below"
@@ -93,7 +93,7 @@ if __FILE__ == $0
     puts "\nInstalling kernel\n"
     output = %x[ sudo dpkg -i #{path}/linux-*.deb ]
     puts output
-    puts "\nDon't forget reboot your PC/server\n"
+    puts "\nDon't forget to reboot your system\n"
   end
 
   if options[:clear]
