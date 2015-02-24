@@ -9,7 +9,7 @@ or if you wish install gems manually:
 gem install nokogiri progressbar micro-optparse  
 
 ## HOW TO USE  
-./get_kernel.rb -h # for help
+./get_kernel.rb -h # for help  
 ./get_kernel.rb # for amd64 generic kernel  
 ./get_kernel.rb -a amd64 # for amd64 generic kernel  
 ./get_kernel.rb -a amd64 -t lowlatency # for amd64 lowlatency kernel  
