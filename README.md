@@ -5,7 +5,7 @@ It installs kernel ONLY if you choose option --install, by default it only downl
 
 ## Dependencies installation  
 gem install bunder and run 'bundle' command  
-or of you wish install gems manually:  
+or if you wish install gems manually:  
 gem install nokogiri progressbar micro-optparse  
 
 ## HOW TO USE  

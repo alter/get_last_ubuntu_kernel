@@ -1,5 +1,5 @@
 ## Dependencies installation  
 gem install bundler and run 'bundle' command  
-or of you wish install gems manually:  
+or if you wish install gems manually:  
 gem install nokogiri progressbar micro-optparse  
 
