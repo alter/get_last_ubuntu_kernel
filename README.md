@@ -18,6 +18,8 @@ gem install nokogiri progressbar micro-optparse
 ./get_kernel.rb -t lowlatency # for amd64 lowlatency kernel  
 ./get_kernel.rb -s # show version of kernel which available for downloading  
 ./get_kernel.rb -i # setup downloaded version  
+./get_kernel.rb -c # remove downloaded files, better to use with -i flag, for downloading, installation and cleaning temp folders  
+./get_kernle.rb -v # show version of script  
 
 
 ## Supported versions
