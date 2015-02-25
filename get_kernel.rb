@@ -6,7 +6,7 @@ require 'securerandom'
 require 'progressbar'
 require 'micro-optparse'
 
-VERSION='2.2'
+VERSION='2.3'
 
 options = Parser.new do |p|
   p.banner = "This is a script for getting last kernel version from kernel.ubuntu.com/~kernel-ppa/mainline, for usage see below"
@@ -16,6 +16,8 @@ options = Parser.new do |p|
   p.option :show, 'only show last stable kernel version end exit', :default => false, :optional => true
   p.option :install, 'install downloaded kernel', :default => false, :optional => true
   p.option :clear, 'remove folder with kernel deb packages from /tmp', :default => false, :optional => true
+  p.option :proxy_addr, 'set address of http proxy', :default => '127.0.0.1', :optional => true, :value_matches => /([0-9]{1,3}\.){3}[0-9]{1,3}/
+  p.option :proxy_port, 'set port of http proxy, default: 8118', :default => 8118, :optional => true
 end.process!
 
 HOST = 'kernel.ubuntu.com'
@@ -24,13 +26,33 @@ $arch = options[:arch] || 'amd64'
 $type = options[:type] || 'generic'
 $versions = []
 $files = []
+$proxy_addr = options[:proxy_addr]
+
+# Use proxy_port only if proxy_addr was set
+if $proxy_addr.nil?
+  $proxy_port = nil
+else
+  $proxy_port = options[:proxy_port]
+end
 
 def get_all_versions
   $versions = []
-  source = Net::HTTP.get( HOST, MAINLINE )
-  page = Nokogiri::HTML( source )
-  page.css('a').each do |a|
-    $versions << a.text if !a.text.include? '-rc'
+  http = Net::HTTP.new( HOST, nil, $proxy_addr, $proxy_port )
+  http.open_timeout = 2
+  http.read_timeout = 3
+  begin
+    http.start
+    begin
+      response = http.get( MAINLINE )
+      page = Nokogiri::HTML( response.body )
+      page.css('a').each do |a|
+        $versions << a.text if !a.text.include? '-rc'
+      end
+    rescue Timeout::Error
+      STDERR.puts "Timeout due to reading"
+    end
+  rescue Timeout::Error
+    STDERR.puts "Timeout due to connecting"
   end
 end
 
@@ -78,7 +100,11 @@ end
 if __FILE__ == $0
 
   if options[:show]
-    puts "Last stable version: #{get_last_version.sub('/', '')}"
+    begin
+      puts "Last stable version: #{get_last_version.sub('/', '')}"
+    rescue
+      STDERR.puts "Can't detect version"
+    end
     exit 0
   end
 
