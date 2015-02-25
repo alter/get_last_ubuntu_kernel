@@ -27,6 +27,7 @@ $type = options[:type] || 'generic'
 $versions = []
 $files = []
 $proxy_addr = options[:proxy_addr]
+$http = nil
 
 # Use proxy_port only if proxy_addr was set
 if $proxy_addr.nil?
@@ -35,25 +36,33 @@ else
   $proxy_port = options[:proxy_port]
 end
 
-def get_all_versions
-  $versions = []
-  http = Net::HTTP.new( HOST, nil, $proxy_addr, $proxy_port )
-  http.open_timeout = 2
-  http.read_timeout = 3
+def wrap_connection
+  $http = Net::HTTP.new( HOST, nil, $proxy_addr, $proxy_port )
+  $http.open_timeout = 5
+  $http.read_timeout = 10
   begin
-    http.start
+    $http.start
     begin
-      response = http.get( MAINLINE )
-      page = Nokogiri::HTML( response.body )
-      page.css('a').each do |a|
-        $versions << a.text if !a.text.include? '-rc'
-      end
+      yield
     rescue Timeout::Error
       STDERR.puts "Timeout due to reading"
+      exit 2
     end
   rescue Timeout::Error
     STDERR.puts "Timeout due to connecting"
+    exit 1
   end
+end
+
+def get_all_versions
+  $versions = []
+  wrap_connection {
+    response = $http.get( MAINLINE )
+    page = Nokogiri::HTML( response.body )
+    page.css('a').each do |a|
+      $versions << a.text if !a.text.include? '-rc'
+    end
+  }
 end
 
 def get_last_version
@@ -63,11 +72,13 @@ end
 
 def get_all_files
   $files = []
-  source = Net::HTTP.get( HOST, "#{MAINLINE}#{get_last_version}" )
-  page = Nokogiri::HTML( source )
-  page.css('a').each do |a|
-    $files << a.text if( ( a.text.include? $arch and a.text.include? $type ) or a.text.include? '_all' )
-  end
+  wrap_connection {
+    response = $http.get( "#{MAINLINE}#{get_last_version}" )
+    page = Nokogiri::HTML( response.body )
+    page.css('a').each do |a|
+      $files << a.text if( ( a.text.include? $arch and a.text.include? $type ) or a.text.include? '_all' )
+    end
+  }
 end
 
 
@@ -80,32 +91,29 @@ end
 def download_file(path, file)
   counter = 0
   file_path = "#{MAINLINE}#{get_last_version}#{file}"
-  Net::HTTP.start( HOST ) do |http|
-    response = http.request_head( URI.escape( file_path ) )
+  wrap_connection {
+    response = $http.request_head( URI.escape( file_path ) )
     ProgressBar
     pbar = ProgressBar.new( "progress", response['content-length'].to_i )
     puts file
     pbar.file_transfer_mode
-    File.open( "#{path}/#{file}", 'w' ) do |f|
-      http.get( file_path ) do |str|
-        f.write str
-        counter += str.length
-        pbar.set(counter)
+    wrap_connection {
+      File.open( "#{path}/#{file}", 'w' ) do |f|
+        $http.get( file_path ) do |str|
+          f.write str
+          counter += str.length
+          pbar.set(counter)
+        end
       end
-    end
+    }
     pbar.finish
-  end
+  }
 end
 
 if __FILE__ == $0
-
   if options[:show]
-    begin
       puts "Last stable version: #{get_last_version.sub('/', '')}"
-    rescue
-      STDERR.puts "Can't detect version"
-    end
-    exit 0
+      exit 0
   end
 
   get_all_files
@@ -131,4 +139,3 @@ if __FILE__ == $0
     puts "\nrun \ bash -c 'sudo dpkg -i #{path}/linux-*.deb\' if you'd like to install downloaded kernel!\n"
   end
 end
-
