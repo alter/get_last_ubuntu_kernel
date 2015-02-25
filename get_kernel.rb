@@ -6,18 +6,19 @@ require 'securerandom'
 require 'progressbar'
 require 'micro-optparse'
 
-VERSION='2.4'
+VERSION='2.5'
 
 options = Parser.new do |p|
-  p.banner = "This is a script for getting last kernel version from kernel.ubuntu.com/~kernel-ppa/mainline, for usage see below"
+  p.banner = "This is a script for getting latest kernel version from kernel.ubuntu.com/~kernel-ppa/mainline, for usage see below"
   p.version = "script version #{VERSION}"
   p.option :arch, 'architecture type "amd64" or "i386", default "amd64"', :default => 'amd64', :value_in_set => ['amd64', 'i386']
   p.option :type, 'kernel type "generic" or "lowlatency", default "generic"', :default => 'generic', :value_in_set => ['generic', 'lowlatency']
-  p.option :show, 'only show last stable kernel version end exit', :default => false, :optional => true
+  p.option :show, 'only show latest stable kernel version end exit', :default => false, :optional => true
   p.option :install, 'install downloaded kernel', :default => false, :optional => true
   p.option :clear, 'remove folder with kernel deb packages from /tmp', :default => false, :optional => true
   p.option :proxy_addr, 'set address of http proxy', :default => '127.0.0.1', :optional => true, :value_matches => /([0-9]{1,3}\.){3}[0-9]{1,3}/
   p.option :proxy_port, 'set port of http proxy, default: 8118', :default => 8118, :optional => true
+  p.option :yes, 'set yes to all questions about downloading and installation', :default => false, :value_in_set => [ true, false ]
 end.process!
 
 HOST = 'kernel.ubuntu.com'
@@ -117,27 +118,46 @@ def puts_wrapper
 end
 
 if __FILE__ == $0
-  if options[:show]
-      puts "Last stable version: #{get_last_version.sub('/', '')}"
-      exit 0
-  end
+
+  puts "Latest stable version: #{get_last_version.sub('/', '')}"
+
+  exit 0 if options[:show]
 
   get_all_files
   path = generate_tmp_folder
 
-  @files.each do |file|
-    download_file(path, file)
+  print "Do you want to download this kernel?[y/N] "
+  STDOUT.flush
+  confirmation = options[:yes] || (true if gets.chomp == 'y')
+
+  if confirmation
+    @files.each do |file|
+      download_file(path, file)
+    end
+  else
+    exit 0
   end
 
   if options[:install]
-    puts_wrapper {
-      puts "Installing kernel"
-    }
-    output = %x[ sudo dpkg -i #{path}/linux-*.deb ]
-    puts output
-    puts_wrapper {
-      puts "Don't forget to reboot your system"
-    }
+    puts
+    print "Do you want to install this kernel?[y/N] "
+    STDOUT.flush
+    confirmation = options[:yes] || (true if gets.chomp == 'y')
+
+    if confirmation
+      puts_wrapper {
+        puts "Installing kernel"
+      }
+      output = %x[ sudo dpkg -i #{path}/linux-*.deb ]
+      puts output
+      puts_wrapper {
+        puts "Don't forget to reboot your system"
+      }
+    else
+      puts_wrapper {
+        puts "Installation has been skipped"
+      }
+    end
   end
 
   if options[:clear]
