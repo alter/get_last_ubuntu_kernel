@@ -22,26 +22,26 @@ end.process!
 
 HOST = 'kernel.ubuntu.com'
 MAINLINE = '/~kernel-ppa/mainline/'
-$arch = options[:arch] || 'amd64'
-$type = options[:type] || 'generic'
-$versions = []
-$files = []
-$proxy_addr = options[:proxy_addr]
-$http = nil
+@arch = options[:arch] || 'amd64'
+@type = options[:type] || 'generic'
+@versions = []
+@files = []
+@proxy_addr = options[:proxy_addr]
+@http = nil
 
 # Use proxy_port only if proxy_addr was set
-if $proxy_addr.nil?
-  $proxy_port = nil
+if @proxy_addr.nil?
+  @proxy_port = nil
 else
-  $proxy_port = options[:proxy_port]
+  @proxy_port = options[:proxy_port]
 end
 
 def wrap_connection
-  $http = Net::HTTP.new( HOST, nil, $proxy_addr, $proxy_port )
-  $http.open_timeout = 5
-  $http.read_timeout = 10
+  @http = Net::HTTP.new( HOST, nil, @proxy_addr, @proxy_port )
+  @http.open_timeout = 5
+  @http.read_timeout = 10
   begin
-    $http.start
+    @http.start
     begin
       yield
     rescue Timeout::Error
@@ -55,28 +55,28 @@ def wrap_connection
 end
 
 def get_all_versions
-  $versions = []
+  @versions = []
   wrap_connection {
-    response = $http.get( MAINLINE )
+    response = @http.get( MAINLINE )
     page = Nokogiri::HTML( response.body )
     page.css('a').each do |a|
-      $versions << a.text if !a.text.include? '-rc'
+      @versions << a.text if !a.text.include? '-rc'
     end
   }
 end
 
 def get_last_version
-  get_all_versions if $files.empty?
-  $versions[-1]
+  get_all_versions if @files.empty?
+  @versions[-1]
 end
 
 def get_all_files
-  $files = []
+  @files = []
   wrap_connection {
-    response = $http.get( "#{MAINLINE}#{get_last_version}" )
+    response = @http.get( "#{MAINLINE}#{get_last_version}" )
     page = Nokogiri::HTML( response.body )
     page.css('a').each do |a|
-      $files << a.text if( ( a.text.include? $arch and a.text.include? $type ) or a.text.include? '_all' )
+      @files << a.text if( ( a.text.include? @arch and a.text.include? @type ) or a.text.include? '_all' )
     end
   }
 end
@@ -92,14 +92,14 @@ def download_file(path, file)
   counter = 0
   file_path = "#{MAINLINE}#{get_last_version}#{file}"
   wrap_connection {
-    response = $http.request_head( URI.escape( file_path ) )
+    response = @http.request_head( URI.escape( file_path ) )
     ProgressBar
     pbar = ProgressBar.new( "progress", response['content-length'].to_i )
     puts file
     pbar.file_transfer_mode
     wrap_connection {
       File.open( "#{path}/#{file}", 'w' ) do |f|
-        $http.get( file_path ) do |str|
+        @http.get( file_path ) do |str|
           f.write str
           counter += str.length
           pbar.set(counter)
@@ -119,7 +119,7 @@ if __FILE__ == $0
   get_all_files
   path = generate_tmp_folder
 
-  $files.each do |file|
+  @files.each do |file|
     download_file(path, file)
   end
 
