@@ -6,7 +6,7 @@ require 'securerandom'
 require 'progressbar'
 require 'micro-optparse'
 
-VERSION='2.3'
+VERSION='2.4'
 
 options = Parser.new do |p|
   p.banner = "This is a script for getting last kernel version from kernel.ubuntu.com/~kernel-ppa/mainline, for usage see below"
@@ -110,6 +110,12 @@ def download_file(path, file)
   }
 end
 
+def puts_wrapper
+  puts
+  yield
+  puts
+end
+
 if __FILE__ == $0
   if options[:show]
       puts "Last stable version: #{get_last_version.sub('/', '')}"
@@ -124,18 +130,26 @@ if __FILE__ == $0
   end
 
   if options[:install]
-    puts "\nInstalling kernel\n"
+    puts_wrapper {
+      puts "Installing kernel"
+    }
     output = %x[ sudo dpkg -i #{path}/linux-*.deb ]
     puts output
-    puts "\nDon't forget to reboot your system\n"
+    puts_wrapper {
+      puts "Don't forget to reboot your system"
+    }
   end
 
   if options[:clear]
-    puts "\nremoving #{path}\n"
+    puts_wrapper {
+      puts "removing #{path}"
+    }
     %x[ rm -rf #{path} ]
   end
 
   if !options[:clear] and !options[:install]
-    puts "\nrun \ bash -c 'sudo dpkg -i #{path}/linux-*.deb\' if you'd like to install downloaded kernel!\n"
+    puts_wrapper {
+      puts "run \ bash -c 'sudo dpkg -i #{path}/linux-*.deb\' if you'd like to install downloaded kernel!"
+    }
   end
 end
