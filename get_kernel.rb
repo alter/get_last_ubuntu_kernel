@@ -6,7 +6,7 @@ require 'securerandom'
 require 'progressbar'
 require 'micro-optparse'
 
-VERSION='2.5'
+VERSION='2.6'
 
 options = Parser.new do |p|
   p.banner = "This is a script for getting latest kernel version from kernel.ubuntu.com/~kernel-ppa/mainline, for usage see below"
@@ -61,7 +61,7 @@ def get_all_versions
     response = @http.get( MAINLINE )
     page = Nokogiri::HTML( response.body )
     page.css('a').each do |a|
-      @versions << a.text if !a.text.include? '-rc'
+      @versions << a.text if !a.text.include? '-rc' and !a.text.include? '-unstable'
     end
   }
 end
