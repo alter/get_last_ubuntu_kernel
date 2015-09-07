@@ -6,7 +6,7 @@ require 'securerandom'
 require 'progressbar'
 require 'micro-optparse'
 
-VERSION='2.6'
+VERSION='2.7'
 
 options = Parser.new do |p|
   p.banner = "This is a script for getting latest kernel version from kernel.ubuntu.com/~kernel-ppa/mainline, for usage see below"
@@ -19,6 +19,7 @@ options = Parser.new do |p|
   p.option :proxy_addr, 'set address of http proxy', :default => '127.0.0.1', :optional => true, :value_matches => /([0-9]{1,3}\.){3}[0-9]{1,3}/
   p.option :proxy_port, 'set port of http proxy, default: 8118', :default => 8118, :optional => true
   p.option :yes, 'set yes to all questions about downloading and installation', :default => false, :value_in_set => [ true, false ]
+  p.option :unstable, 'install unstable kernel version', :default => false, :optional => true
 end.process!
 
 HOST = 'kernel.ubuntu.com'
@@ -27,6 +28,7 @@ MAINLINE = '/~kernel-ppa/mainline/'
 @type = options[:type] || 'generic'
 @versions = []
 @files = []
+@unstable = options[:unstable]
 @proxy_addr = options[:proxy_addr]
 @http = nil
 
@@ -60,8 +62,14 @@ def get_all_versions
   wrap_connection {
     response = @http.get( MAINLINE )
     page = Nokogiri::HTML( response.body )
-    page.css('a').each do |a|
-      @versions << a.text if !a.text.include? '-rc' and !a.text.include? '-unstable'
+    if @unstable
+      page.css('a').each do |a|
+        @versions << a.text
+      end
+    else
+      page.css('a').each do |a|
+        @versions << a.text if !a.text.include? '-rc' and !a.text.include? '-unstable'
+      end
     end
   }
 end
